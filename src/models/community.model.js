@@ -38,27 +38,13 @@ Community.findAllCommunity = async function (
   if (selectedAreas?.length) {
     whereCondition += ` AND pa.aId in (${selectedAreas})`;
   }
-  // const searchCount = await executeQuery(
-  //   `SELECT count(c.Id) as count FROM community as c WHERE ${whereCondition}`
-  // );
-  // const searchData = await executeQuery(
-  //   `select c.*,count(cm.profileId) as members,c.Country,c.City,c.State,c.Zip,c.County from community as c left join communityMembers as cm on cm.communityId = c.Id left join profile as p on p.ID = c.profileId where ${whereCondition} GROUP BY c.Id order by c.creationDate desc limit ? offset ?`,
-  //   [limit, offset]
-  // );
-  // return {
-  //   count: searchCount?.[0]?.count || 0,
-  //   data: searchData,
-  // };
+
   let query = "";
   query = `select c.* from community as c left join practitioner_emphasis as pe on pe.communityId = c.Id left join practitioner_area as pa on pa.communityId = c.Id where ${whereCondition} GROUP BY c.Id order by c.Id desc;`;
-  // const communityList = await executeQuery(query, [id]);
   console.log("query===>", query);
   const communityList = await executeQuery(query);
-  // console.log(communityList);
   const localCommunities = [];
   for (const key in communityList) {
-    // const query1 =
-    //   "select cm.profileId from communityMembers as cm where cm.communityId = ?;";
     const query1 =
       "select pe.eId,eh.name from practitioner_emphasis as pe left join emphasis_healing as eh on eh.eId = pe.eId where pe.communityId =? ";
     const query2 =
@@ -232,6 +218,17 @@ Community.findCommunityBySlug = async function (slug) {
       "select cm.*,p.Username, p.ProfilePicName,p.FirstName,p.LastName from communityMembers as cm left join profile as p on p.ID = cm.profileId where cm.communityId = ?;";
     const members = await executeQuery(getMembersQuery, [community?.Id]);
     community["memberList"] = members;
+  }
+  if (community.pageType === "community") {
+    const query1 =
+      "select pe.eId,eh.name from practitioner_emphasis as pe left join emphasis_healing as eh on eh.eId = pe.eId where pe.communityId =? ";
+    const query2 =
+      "select pa.aId,ah.name from practitioner_area as pa left join area_healing as ah on ah.aId = pa.aId where pa.communityId =? ";
+    const values1 = [community.Id];
+    const emphasis = await executeQuery(query1, values1);
+    const areas = await executeQuery(query2, values1);
+    community.emphasis = emphasis;
+    community.areas = areas;
   }
 
   return community;
