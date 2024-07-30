@@ -284,7 +284,7 @@ exports.cancelAppointmentNotificationMail = async (id, therapistName) => {
 
   const mailObj = {
     email: data?.Email,
-    subject: "Healing notification",
+    subject: "Therapist notification",
     root: "../email-templates/notification.ejs",
     templateData: { name: name, msg: msg, url: redirectUrl },
   };
