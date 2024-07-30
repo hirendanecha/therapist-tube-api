@@ -273,6 +273,26 @@ const getIcalObjectInstance = async (
   return cal;
 };
 
+exports.cancelAppointmentNotificationMail = async (id, therapistName) => {
+  const query =
+    "select u.Email,p.FirstName,p.LastName,p.Username from users as u left join profile as p on p.UserID = u.Id where p.ID =?";
+  const values = [id];
+  const [data] = await this.executeQuery(query, values);
+  let name = data?.Username || data?.FirstName;
+  let msg = `Your appointment with ${therapistName} has been cancelled, please book another slot!`;
+  let redirectUrl = `${environment.FRONTEND_URL}`;
+
+  const mailObj = {
+    email: data?.Email,
+    subject: "Healing notification",
+    root: "../email-templates/notification.ejs",
+    templateData: { name: name, msg: msg, url: redirectUrl },
+  };
+
+  await email.sendMail(mailObj);
+  return;
+};
+
 exports.executeQuery = async (query, values = []) => {
   return new Promise((resolve, reject) => {
     db.query(query, values, function (err, result) {
